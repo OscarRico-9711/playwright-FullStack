@@ -1,4 +1,4 @@
-# Playwright Full Demo
+# playwright-FullStack
 
 Proyecto base para construir una automatizacion robusta con Playwright y TypeScript.
 

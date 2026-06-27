@@ -1,5 +1,5 @@
 {
-  "name": "playwright---full-demo",
+  "name": "playwright-fullstack",
   "version": "1.0.0",
   "description": "Proyecto base para construir una automatizacion robusta con Playwright y TypeScript.",
   "main": "index.js",
