@@ -230,6 +230,29 @@ await expect(page2).toHaveTitle(/Detalle/);
 | **locator encadenado** | `page.getByText('Text Box').locator('span', { hasText: 'Text Box' })` | Busca un elemento dentro de otro elemento. |
 | **filter combinado** | `page.getByTestId('menu-item').filter({ hasText: 'Text Box' })` | Filtra el locator anterior sin cambiar el elemento sobre el que se actuará.. |
 
+### Tomar un elemento especifico con `first()` y `nth()`
+
+Este patron sirve cuando un locator devuelve varios elementos iguales y se quiere actuar sobre una posicion concreta de la lista. `first()` toma el primer elemento y `nth(2)` toma el tercero, porque el indice empieza en `0`.
+
+```ts
+const products = page.getByTestId('product-card');
+
+// Primer producto de la lista.
+await expect(products.first()).toBeVisible();
+await products.first().getByRole('button', { name: 'Ver detalle' }).click();
+
+// Tercer producto de la lista.
+await expect(products.nth(2)).toContainText('Disponible');
+await products.nth(2).getByRole('button', { name: 'Agregar' }).click();
+```
+
+| Parte | Uso |
+| --- | --- |
+| `page.getByTestId('product-card')` | Encuentra todas las cards de productos. |
+| `.first()` | Selecciona la primera card encontrada. |
+| `.nth(2)` | Selecciona la tercera card encontrada. |
+| `.getByRole('button', ...)` | Busca el boton dentro de la card seleccionada. |
+
 ### Buscar un elemento dentro de otro
 
 Este patron sirve cuando primero se encuentra un contenedor o elemento padre, y luego se quiere buscar un elemento hijo dentro de ese resultado.
@@ -490,6 +513,8 @@ const response = await responsePromise;
 | **toBeEnabled()** | `await expect(locator).toBeEnabled();` | Habilitado. |
 | **toBeDisabled()** | `await expect(locator).toBeDisabled();` | Deshabilitado. |
 | **toBeChecked()** | `await expect(locator).toBeChecked();` | Marcado. |
+| **toBeRequired()** | `await expect(locator).toBeRequired();` | Campo requerido. |
+| **toBeInvalid()** | `await expect(locator).toBeInvalid();` | Campo invalido segun validacion HTML. |
 | **toHaveText()** | `await expect(locator).toHaveText('Success');` | Texto exacto. |
 | **toContainText()** | `await expect(locator).toContainText('Success');` | Contiene texto. |
 | **toHaveValue()** | `await expect(locator).toHaveValue('Oscar');` | Valor del input. |
@@ -500,6 +525,17 @@ const response = await responsePromise;
 | **toHaveTitle()** | `await expect(page).toHaveTitle('Dashboard');` | Título. |
 | **toBeOK()** | `await expect(response).toBeOK();` | Respuesta API OK. |
 | **toMatchObject()** | `expect(json).toMatchObject({ success: true });` | Validar objeto parcial. |
+
+### Ejemplo de validacion de formulario
+
+```ts
+const fullName = page.getByLabel('Full Name');
+
+await expect(fullName).toBeRequired();
+
+await fullName.fill('');
+await expect(fullName).toBeInvalid();
+```
 
 ---
 

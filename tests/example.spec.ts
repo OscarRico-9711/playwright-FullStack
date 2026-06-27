@@ -16,10 +16,16 @@ test('fill in text box fields', async ({ page }) => {
 
     await page.locator('//input[@placeholder="name@example.com"]').fill("oscar@example.com"); //busca elemento usando xpath
 
+    await page
+    //.locator('textarea[placeholder="Current Address"][id="currentAddress"]').fill('1234 Main St');
+    .locator('.form-control').nth(2).fill('5678 Elm St');
+
+
+
 
 
 });
 
 test.afterEach(async ({ page }) => {
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(1000);
 });
