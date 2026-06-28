@@ -2,7 +2,7 @@
 ---
 ## 📌 Imports básicos
 ```ts
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, type Page, type Locator } from '@playwright/test';
 ```
 ---
 ## 🧰 Comandos útiles de Playwright
@@ -41,7 +41,7 @@ import { test, expect, Page, Locator } from '@playwright/test';
 | **fullyParallel** | `fullyParallel: true` | Ejecutar archivos/tests en paralelo. |
 | **forbidOnly** | `forbidOnly: !!process.env.CI` | Fallar en CI si queda un `test.only`. |
 | **retries** | `retries: process.env.CI ? 2 : 0` | Reintentos automáticos, normalmente solo en CI. |
-| **workers** | `workers: process.env.CI ? 1 : undefined` | Número de procesos paralelos. |
+| **workers** | `workers: process.env.CI ? 2 : undefined` | Número de procesos paralelos; usar `1` solo para debugging o suites con datos compartidos/inestables. |
 | **reporter** | `reporter: [['html'], ['list']]` | Reportes de ejecución. |
 | **outputDir** | `outputDir: 'test-results'` | Carpeta para screenshots, videos, traces y otros artefactos. |
 | **baseURL** | `baseURL: process.env.BASE_URL` | Permite usar `page.goto('/')` sin repetir dominio. |
@@ -69,7 +69,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 2 : undefined,
   reporter: [['html'], ['list']],
   outputDir: 'test-results',
 
@@ -121,10 +121,14 @@ import { defineConfig } from '@playwright/test';
 export default defineConfig({
   use: {
     baseURL: process.env.API_URL ?? 'https://api.example.com',
-    extraHTTPHeaders: {
-      Accept: 'application/json',
-      Authorization: `Bearer ${process.env.API_TOKEN}`,
-    },
+    extraHTTPHeaders: process.env.API_TOKEN
+      ? {
+          Accept: 'application/json',
+          Authorization: `Bearer ${process.env.API_TOKEN}`,
+        }
+      : {
+          Accept: 'application/json',
+        },
   },
 });
 ```
@@ -223,16 +227,20 @@ await expect(page2).toHaveTitle(/Detalle/);
 | **first()** | `page.locator('.item').first()` | Primer elemento. |
 | **last()** | `page.locator('.item').last()` | Último elemento. |
 | **nth()** | `page.locator('.item').nth(2)` | Elemento por índice. |
+| **all()** | `const lista = await page.locator('#output > div > p').all();` | Obtener un array de locators; no auto-espera a que aparezcan todos. |
+| **textContent()** | `const texto = await page.locator('h1').textContent();` | Obtener texto manualmente; para validar texto suele ser mejor `expect(locator).toHaveText()`. |
 | **filter()** | `page.getByRole('row').filter({ hasText: 'Admin' })` | Filtra elementos. |
 | **has** | `page.locator('article', { has: page.getByText('Miami') })` | Filtra por un locator interno. |
 | **hasText** | `page.locator('.card', { hasText: 'Active' })` | Filtra por texto interno. |
 | **CSS combinado** | `page.locator('[id="userName"][placeholder="Full Name"]')` | Busca un mismo elemento que cumpla varios atributos. |
-| **locator encadenado** | `page.getByText('Text Box').locator('span', { hasText: 'Text Box' })` | Busca un elemento dentro de otro elemento. |
-| **filter combinado** | `page.getByTestId('menu-item').filter({ hasText: 'Text Box' })` | Filtra el locator anterior sin cambiar el elemento sobre el que se actuará.. |
+| **locator encadenado** | `page.getByTestId('sidebar').getByRole('link', { name: 'Text Box' })` | Busca un elemento dentro de un contenedor. |
+| **filter combinado** | `page.getByTestId('menu-item').filter({ hasText: 'Text Box' })` | Filtra el locator anterior sin cambiar el elemento sobre el que se actuará. |
 
 ### Tomar un elemento especifico con `first()` y `nth()`
 
 Este patron sirve cuando un locator devuelve varios elementos iguales y se quiere actuar sobre una posicion concreta de la lista. `first()` toma el primer elemento y `nth(2)` toma el tercero, porque el indice empieza en `0`.
+
+Usarlo esta bien cuando la posicion es parte del comportamiento que se quiere probar. Si se usa solo para evitar un error de multiples elementos, normalmente es mejor crear un locator mas especifico.
 
 ```ts
 const products = page.getByTestId('product-card');
@@ -258,20 +266,57 @@ await products.nth(2).getByRole('button', { name: 'Agregar' }).click();
 Este patron sirve cuando primero se encuentra un contenedor o elemento padre, y luego se quiere buscar un elemento hijo dentro de ese resultado.
 
 ```ts
-// Encuentra un elemento que tenga el texto "Text Box".
-// Dentro de ese elemento, busca un <span> que tenga el texto "Text Box".
-// Haz clic en ese <span>.
-await page
-  .getByText('Text Box')
-  .locator('span', { hasText: 'Text Box' })
+const sidebar = page.getByTestId('sidebar');
+
+await sidebar
+  .getByRole('link', { name: 'Text Box' })
   .click();
 ```
 
 | Parte | Uso |
 | --- | --- |
-| `page.getByText('Text Box')` | Encuentra el elemento base o contenedor por texto. |
-| `.locator('span', { hasText: 'Text Box' })` | Busca un `span` dentro del elemento anterior. |
-| `.click()` | Hace click sobre el `span` encontrado. |
+| `page.getByTestId('sidebar')` | Encuentra el contenedor donde se quiere buscar. |
+| `.getByRole('link', { name: 'Text Box' })` | Busca el link dentro de ese contenedor. |
+| `.click()` | Hace click sobre el link encontrado. |
+
+Mismo patron con CSS:
+
+```ts
+await page
+  .locator('#userEmail-wrapper input[autocomplete="off"]')
+  .fill('test@mail.com');
+```
+
+Tambien se puede escribir separando el contenedor y el elemento interno:
+
+```ts
+await page
+  .locator('#userEmail-wrapper')
+  .locator('input[autocomplete="off"]')
+  .fill('test@mail.com');
+```
+
+| Parte | Uso |
+| --- | --- |
+| `#userEmail-wrapper` | Encuentra el contenedor por id. |
+| `input[autocomplete="off"]` | Busca dentro de ese contenedor un `input` con ese atributo. |
+| Espacio entre selectores | Busca descendientes en cualquier nivel, no solo hijos directos. |
+| `.locator(...).locator(...)` | Hace lo mismo, pero separando el locator padre y el locator hijo. |
+
+### Contar hijos o descendientes con `>`
+
+Este patron sirve cuando se quiere validar cuantos elementos devuelve un selector. El simbolo `>` en CSS significa "hijo directo".
+
+```ts
+await expect(page.locator('#output > div > p')).toHaveCount(4);
+```
+
+| Parte | Uso |
+| --- | --- |
+| `#output` | Elemento padre inicial. |
+| `> div` | Busca solo los `div` que son hijos directos de `#output`. |
+| `> p` | Busca solo los `p` que son hijos directos de esos `div`. |
+| `toHaveCount(4)` | Valida que ese locator devuelva exactamente 4 elementos. |
 
 ### Filtrar elementos combinando condiciones
 
@@ -316,6 +361,31 @@ Resumen:
 | `.locator(...)` | Busca dentro del locator anterior; cambia el contexto de busqueda al interior del elemento. |
 | `.filter(...)` | Filtra los elementos del locator anterior por una condicion como `hasText` o `has`. |
 | Encadenar dos locators | No crea una condicion tipo AND sobre el mismo elemento; busca descendientes dentro del locator anterior. |
+
+### Strict mode en locators
+
+Playwright usa strict mode para acciones como `click()`, `fill()` o `check()`. Eso significa que el locator debe apuntar a un solo elemento. Si encuentra varios, el test falla para evitar hacer click en el elemento equivocado.
+
+```ts
+// Falla si hay mas de un boton con texto "Save".
+await page.getByRole('button', { name: 'Save' }).click();
+```
+
+Mejor hacerlo mas especifico usando un contenedor:
+
+```ts
+const profileForm = page.getByTestId('profile-form');
+
+await profileForm
+  .getByRole('button', { name: 'Save' })
+  .click();
+```
+
+Usar `first()` o `nth()` solo cuando la posicion realmente importa:
+
+```ts
+await page.getByRole('button', { name: 'Save' }).first().click();
+```
 
 ### Recomendación de prioridad
 
@@ -518,9 +588,9 @@ const response = await responsePromise;
 | **toHaveText()** | `await expect(locator).toHaveText('Success');` | Texto exacto. |
 | **toContainText()** | `await expect(locator).toContainText('Success');` | Contiene texto. |
 | **toHaveValue()** | `await expect(locator).toHaveValue('Oscar');` | Valor del input. |
-| **toHaveAttribute()** | `await expect(locator).toHaveAttribute('type', 'email');` | Atributo. |
+| **toHaveAttribute()** | `await expect(locator).toHaveAttribute('atributo', 'valor');` | Atributo y valor del atributo|
 | **toHaveClass()** | `await expect(locator).toHaveClass(/active/);` | Clase CSS. |
-| **toHaveCount()** | `await expect(locator).toHaveCount(5);` | Cantidad de elementos. |
+| **toHaveCount()** | `await expect(locator).toHaveCount(5);` | Valida cuantos elementos devuelve ese locator. |
 | **toHaveURL()** | `await expect(page).toHaveURL(/dashboard/);` | URL. |
 | **toHaveTitle()** | `await expect(page).toHaveTitle('Dashboard');` | Título. |
 | **toBeOK()** | `await expect(response).toBeOK();` | Respuesta API OK. |
@@ -701,18 +771,23 @@ test('crear usuario por API y verlo en UI', async ({ request, page }) => {
 ### Contexto API manual
 
 ```ts
-import { request, expect } from '@playwright/test';
+import { test, expect, request } from '@playwright/test';
 
-const api = await request.newContext({
-  baseURL: 'https://api.example.com',
-  extraHTTPHeaders: {
-    Authorization: `Bearer ${process.env.API_TOKEN}`,
-  },
+test('GET users con contexto API manual', async () => {
+  const api = await request.newContext({
+    baseURL: 'https://api.example.com',
+    extraHTTPHeaders: process.env.API_TOKEN
+      ? { Authorization: `Bearer ${process.env.API_TOKEN}` }
+      : {},
+  });
+
+  try {
+    const response = await api.get('/users');
+    await expect(response).toBeOK();
+  } finally {
+    await api.dispose();
+  }
 });
-
-const response = await api.get('/users');
-await expect(response).toBeOK();
-await api.dispose();
 ```
 
 ---
@@ -786,7 +861,7 @@ setup('login', async ({ page }) => {
 ## 🧱 Page Object Model rápido
 
 ```ts
-import { Page, Locator } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 
 export class LoginPage {
   readonly page: Page;
@@ -803,6 +878,10 @@ export class LoginPage {
 
   async goto() {
     await this.page.goto('/login');
+  }
+
+  async expectLoaded() {
+    await expect(this.loginButton).toBeVisible();
   }
 
   async login(email: string, password: string) {
@@ -823,6 +902,7 @@ test('login válido', async ({ page }) => {
   const loginPage = new LoginPage(page);
 
   await loginPage.goto();
+  await loginPage.expectLoaded();
   await loginPage.login('user@mail.com', 'Password123');
 
   await expect(page).toHaveURL(/dashboard/);
@@ -831,7 +911,7 @@ test('login válido', async ({ page }) => {
 
 ---
 
-## 🧰 Fixtures custom rápido
+## 🧰 Fixtures custom rápido avanzado
 
 ```ts
 // fixtures/base.ts
