@@ -418,6 +418,7 @@ await page.getByRole('button', { name: 'Save' }).first().click();
 | **press()** | `await page.getByPlaceholder('Search').press('Enter');` | Presionar una tecla. |
 | **pressSequentially()** | `await page.locator('#search').pressSequentially('Playwright');` | Simula escritura humana. |
 | **inputValue()** | `const value = await page.locator('#email').inputValue();` | Obtener valor del input. |
+| **evaluate() con HTMLInputElement** | `const isValid = await page.locator('#email').evaluate((el: HTMLInputElement) => el.checkValidity());` | Validar propiedades/metodos nativos de un input, por ejemplo formato requerido por `pattern` o `required`. |
 | **selectText()** | `await page.locator('#email').selectText();` | Seleccionar texto dentro del input. |
 
 ---

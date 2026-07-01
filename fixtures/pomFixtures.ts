@@ -4,6 +4,7 @@ import { ElementPage } from '../pages/ElementsPage';
 import { CheckBoxComponent } from '../pages/CheckBoxComponent'
 import { RadioButtonComponent } from '../pages/RadioButtonComponent'
 import { TextBoxComponent } from '../pages/TextBoxComponent'
+import { WebTablesComponent } from '../pages/WebTablesComponent'
 
 
 type PomFixtures = { //definimos un tipo de dato PomFixtures que contiene los fixtures que vamos a usar en nuestros tests
@@ -13,6 +14,7 @@ type PomFixtures = { //definimos un tipo de dato PomFixtures que contiene los fi
     checkBoxComponent: CheckBoxComponent;
     radioButtonComponent: RadioButtonComponent;
     textBoxComponent: TextBoxComponent;
+    webTablesComponent: WebTablesComponent;
 }
 
 
@@ -39,7 +41,14 @@ export const test = base.extend<PomFixtures>({ // extendemos los fixtures de pla
     textBoxComponent: async ({ page }, use) => {
         const textBoxComponent = new TextBoxComponent(page)
         await use(textBoxComponent);
+    },
+
+    webTablesComponent: async ({page},use)=>{
+        const webTablesComponent = new WebTablesComponent(page);
+        await use(webTablesComponent);
     }
+
+
 });
 
 export { expect } from '@playwright/test'; // necesario para poder usar expect en los tests, ya que al extender los fixtures de playwright, perdemos el acceso a expect
