@@ -1,17 +1,19 @@
-import { test, expect } from '@playwright/test';
-import { HomePage } from '../pages/HomePage';
+import { test, expect } from '../fixtures/pomFixtures';
+
+
+
 
 test.describe('Home page', { tag: ['@regression', '@homepage'] }, () => {
 
-test('select element option', { tag: '@happy-path' }, async ({ page }) => {
+    test('select element option', { tag: '@happy-path' }, async ({ page, homePage }) => {
 
-    const homepage = new HomePage(page);
 
-    await homepage.navigate(); 
 
-    await homepage.selectElementOption('Forms');
+        await homePage.navigate();
 
-    await expect(page).toHaveURL('https://demoqa.com/forms');
-})
+        await homePage.selectElementOption('Forms');
+
+        await expect(page).toHaveURL('https://demoqa.com/forms');
+    })
 
 })
