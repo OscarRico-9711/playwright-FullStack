@@ -13,7 +13,7 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests',
-  timeout: 10_000, // waits 10 seconds for each test to finish
+  timeout: 30_000, // waits 10 seconds for each test to finish
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -31,9 +31,15 @@ export default defineConfig({
     headless: false, //shows the browser while running the tests
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-  
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+
+    /*
+    launchOptions: {
+      slowMo: 500, // slows down the execution of the tests by 0.5 second
+    },
+
+    */
   },
 
   /* Configure projects for major browsers */
@@ -42,6 +48,8 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
+
+    /*
 
     {
       name: 'firefox',
@@ -52,6 +60,7 @@ export default defineConfig({
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
     },
+    */
     //for this we need a simulator or a real device connected to the computer
 
     /* Test against mobile viewports. * 

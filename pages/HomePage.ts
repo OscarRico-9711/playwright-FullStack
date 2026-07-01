@@ -4,13 +4,15 @@ export class HomePage {
 
     //locators - variables
     readonly page: Page; // declarar variables de pagina
-    readonly elementsoption: Locator; //locator for the heading with the name 'Elements'
+    readonly elementsoption: (option: string) => Locator; //locator for the heading with the name 'Elements'
 
     //constructor 
     constructor(page: Page) {
 
         this.page = page; // this is the page object that is passed to the constructor
-        this.elementsoption = page.getByRole('link',{name:'Elements'});
+        this.elementsoption = (option: string): Locator => {
+            return this.page.getByRole('link', { name: option }); //locator for the heading with the name 'Elements'
+        }
     }
 
     //methods for calling in the test
@@ -18,8 +20,8 @@ export class HomePage {
         await this.page.goto("/");
     }
 
-    async selectElementOption() {
-        await this.elementsoption.click();
+    async selectElementOption(option:string) {
+        await this.elementsoption(option).click();
     }
 
 }

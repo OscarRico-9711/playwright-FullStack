@@ -1,0 +1,363 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - paragraph [ref=e5]:
+      - text: This website stores cookies on your computer. These cookies are used to collect information about how you interact with our website and allow us to remember you. We use this information in order to improve and customize your browsing experience and for analytics and metrics about our visitors both on this website and other media. To find out more, please see the Cast & Crew
+      - link "privacy policy" [ref=e6] [cursor=pointer]:
+        - /url: https://www.castandcrew.com/privacy-policy/
+      - text: (including a privacy notice to California residents).
+    - paragraph [ref=e7]: If you decline, your information won’t be tracked when you visit this website. A single cookie will be used in your browser to remember your preference not to be tracked.
+    - generic [ref=e9]:
+      - button "Accept" [ref=e10] [cursor=pointer]
+      - button "Reject" [ref=e11] [cursor=pointer]
+  - generic [ref=e12]:
+    - paragraph [ref=e15]:
+      - strong [ref=e16]: Celebrating 50 years of Cast & Crew
+    - navigation [ref=e17]:
+      - generic [ref=e18]:
+        - link "Cast & Crew" [ref=e19] [cursor=pointer]:
+          - /url: /
+          - img "Cast & Crew" [ref=e20]
+        - generic [ref=e21]:
+          - link "My Cast & Crew" [ref=e22] [cursor=pointer]:
+            - /url: https://my.castandcrew.com/login
+            - text: MyCast&Crew
+            - text: Login
+          - button "Toggle navigation" [ref=e23] [cursor=pointer]
+  - generic [ref=e25]:
+    - heading "Payroll" [level=1] [ref=e28]
+    - generic [ref=e31]:
+      - heading "Reimagining Entertainment Payroll" [level=2] [ref=e32]
+      - paragraph [ref=e33]: The best just got better. Cast & Crew has served the entertainment industry for more than four decades. And now, with the addition of digital products, we’ve enhanced and simplified the payroll process.
+      - paragraph [ref=e34]: Revolutionizing how we meet and anticipate your needs.
+      - heading "What you get:" [level=3] [ref=e35]
+      - list [ref=e36]:
+        - listitem [ref=e37]: Experienced and dedicated staff.
+        - listitem [ref=e38]: ATL, BTL, and back lot.
+        - listitem [ref=e39]: Highly flexible, scalable, and robust system.
+        - listitem [ref=e40]: Customized reports.
+        - listitem [ref=e41]: Tax filing and administration.
+    - generic [ref=e45]:
+      - list [ref=e47]:
+        - listitem [ref=e48]:
+          - link "Start+" [ref=e49] [cursor=pointer]:
+            - /url: "#startplus"
+        - listitem [ref=e50]:
+          - link "Hours+" [ref=e51] [cursor=pointer]:
+            - /url: "#hoursplus"
+        - listitem [ref=e52]:
+          - link "Residuals" [ref=e53] [cursor=pointer]:
+            - /url: "#residuals"
+        - listitem [ref=e54]:
+          - link "Labor Relations" [ref=e55] [cursor=pointer]:
+            - /url: "#laborrelations"
+      - generic [ref=e56]:
+        - link "Contact Sales" [ref=e57] [cursor=pointer]:
+          - /url: "#contact"
+        - link "Contact Support" [ref=e58] [cursor=pointer]:
+          - /url: /contact/
+    - generic [ref=e60]:
+      - generic [ref=e62]:
+        - figure [ref=e63]
+        - heading "Accurate and Efficient Payroll" [level=3] [ref=e64]
+        - paragraph [ref=e65]: Increase the quality and speed of your payroll operations.
+      - generic [ref=e67]:
+        - figure [ref=e68]
+        - heading "Easy Transition to Digital" [level=3] [ref=e69]
+        - paragraph [ref=e70]: It’s time to go beyond paper. Tap into an industry-leading technology to make your job easier.
+      - generic [ref=e72]:
+        - figure [ref=e73]
+        - heading "Knowledgeable Staff of Payroll Experts" [level=3] [ref=e74]
+        - paragraph [ref=e75]: Accessible, friendly, and experienced staff with extensive knowledge of complex guild and union rules.
+      - generic [ref=e77]:
+        - figure [ref=e78]
+        - heading "Personalized Solutions To Meet Your Requirements" [level=3] [ref=e79]
+        - paragraph [ref=e80]: Each payroll situation is unique and so is yours. Get customized invoices and reports to fit your needs.
+    - article [ref=e83]:
+      - generic [ref=e84]:
+        - heading "Easy Onboarding" [level=2] [ref=e85]
+        - paragraph [ref=e87]: Start+ is a game changer. Digital means less paper and less burden. Hire and onboard your crew members within minutes instead of days. Control, accuracy, visibility, and customization. And you’ll be saving a lot of trees, too.
+    - generic [ref=e91]:
+      - generic [ref=e92]:
+        - heading "Automated Approvals" [level=3] [ref=e93]
+        - paragraph [ref=e95]: Automated workflow approvals in just a few clicks. Gain higher control and visibility.
+      - generic [ref=e96]:
+        - heading "Customizable Interface" [level=3] [ref=e97]
+        - paragraph [ref=e99]: Every production has its specific needs. Get the customization your onboarding requires.
+      - generic [ref=e100]:
+        - heading "Intuitive Dashboards" [level=3] [ref=e101]
+        - paragraph [ref=e103]: Easy-to-use dashboards – quickly view the status of your start packets.
+      - link "Learn More" [ref=e105] [cursor=pointer]:
+        - /url: /solutions/payroll/start/
+    - generic [ref=e106]:
+      - generic [ref=e107]:
+        - generic [ref=e109]:
+          - heading "Digital Timecards Done Right" [level=2] [ref=e110]
+          - paragraph [ref=e112]: "Let’s face it: paper timecards are inefficient and error-prone. Hours+ changes that, providing automated, accurate and fast time capture and approval."
+        - figure [ref=e114]:
+          - img [ref=e115]
+      - link "Learn More" [ref=e117] [cursor=pointer]:
+        - /url: /solutions/payroll/hours/
+    - generic [ref=e120]:
+      - paragraph [ref=e122]: Timely residuals turnaround times, from talent set-ups to quarterly payment runs.
+      - link "Learn More" [ref=e124] [cursor=pointer]:
+        - /url: /solutions/payroll/residuals/
+    - generic [ref=e125]:
+      - generic [ref=e126]:
+        - generic [ref=e128]:
+          - heading [level=2]
+          - heading "Our Expertise. Your Peace of Mind." [level=2] [ref=e129]
+          - paragraph [ref=e131]: You can reach out to us for our collective bargaining expertise, exceptional service, and industry knowledge. We interface with unions and guilds, and track and interpret legislative updates and requirements, to ensure labor compliance. Partner with experts.
+        - img [ref=e133]
+      - link "Learn More" [ref=e135] [cursor=pointer]:
+        - /url: /solutions/payroll/labor-relations/
+    - generic [ref=e138]:
+      - heading "More To Love About Our Payroll Solutions" [level=2] [ref=e139]
+      - list [ref=e141]:
+        - listitem [ref=e142]: Dedicated customer service.
+        - listitem [ref=e143]: Industry expertise.
+        - listitem [ref=e144]: Secure data.
+      - list [ref=e146]:
+        - listitem [ref=e147]: Innovative digital solutions.
+        - listitem [ref=e148]: Personalized attention.
+        - listitem [ref=e149]: Customer care.
+    - generic [ref=e151]:
+      - img "665" [ref=e153]
+      - generic [ref=e155]:
+        - heading "Get in touch with a payroll expert today." [level=2] [ref=e156]
+        - iframe [ref=e159]:
+          - generic [ref=f3e3]:
+            - generic [ref=f3e4]:
+              - generic [ref=f3e5]: First name*
+              - textbox "First name*" [ref=f3e7]:
+                - /placeholder: ""
+            - generic [ref=f3e8]:
+              - generic [ref=f3e9]: Last name*
+              - textbox "Last name*" [ref=f3e11]:
+                - /placeholder: ""
+            - generic [ref=f3e12]:
+              - generic [ref=f3e13]: Email*
+              - textbox "Email*" [ref=f3e15]:
+                - /placeholder: ""
+            - generic [ref=f3e16]:
+              - generic [ref=f3e17]: Phone number
+              - textbox "Phone number" [ref=f3e19]:
+                - /placeholder: ""
+            - generic [ref=f3e20]:
+              - generic [ref=f3e21]: Job title*
+              - textbox "Job title*" [ref=f3e23]:
+                - /placeholder: ""
+            - generic [ref=f3e24]:
+              - generic [ref=f3e25]: Subject*
+              - combobox "Subject*" [ref=f3e27]:
+                - option "Please Select" [disabled] [selected]
+                - option "Payroll"
+                - option "Compliance"
+                - option "Film Financing"
+                - option "Production Incentives"
+                - option "Residuals"
+                - option "Workers' Compensation"
+                - option "Insurance & Loss Prevention"
+                - option "Non-Union Health Insurance"
+                - option "Dedicated Support"
+            - generic [ref=f3e28]:
+              - generic [ref=f3e29]: Company name*
+              - textbox "Company name*" [ref=f3e31]:
+                - /placeholder: ""
+            - generic [ref=f3e32]:
+              - generic [ref=f3e33]: Message*
+              - textbox "Message*" [ref=f3e35]:
+                - /placeholder: ""
+            - generic [ref=f3e36]:
+              - generic [ref=f3e37]: Preferred form of contact*
+              - checkbox "Phone Email" [ref=f3e39]:
+                - radio "Phone" [ref=f3e40]:
+                  - generic [ref=f3e41]:
+                    - radio "Phone" [ref=f3e42] [cursor=pointer]
+                    - text: Phone
+                - radio "Email" [ref=f3e43]:
+                  - generic [ref=f3e44]:
+                    - radio "Email" [ref=f3e45] [cursor=pointer]
+                    - text: Email
+            - generic [ref=f3e46]:
+              - generic [ref=f3e47]: Please check the box to join our mailing list
+              - checkbox "Cast & Crew Updates, Resources, and Industry News Production Incentives Newsletter" [ref=f3e49]:
+                - checkbox "Cast & Crew Updates, Resources, and Industry News" [ref=f3e50]:
+                  - generic [ref=f3e51]:
+                    - checkbox "Cast & Crew Updates, Resources, and Industry News" [ref=f3e52] [cursor=pointer]
+                    - text: Cast & Crew Updates, Resources, and Industry News
+                - checkbox "Production Incentives Newsletter" [ref=f3e53]:
+                  - generic [ref=f3e54]:
+                    - checkbox "Production Incentives Newsletter" [ref=f3e55] [cursor=pointer]
+                    - text: Production Incentives Newsletter
+            - generic [ref=f3e57]:
+              - text: Cast & Crew uses the contact information you provide to share updates about our products and services. You can unsubscribe at any time. To learn more about how we use and protect your information, please review our
+              - link "Privacy Policy." [ref=f3e58] [cursor=pointer]:
+                - /url: https://www.castandcrew.com/privacy-policy/
+              - text: California residents can also find the CA Notice at Collection in our Privacy Policy.
+            - button "Submit" [ref=f3e61] [cursor=pointer]
+    - link "Contact Us Now" [ref=e162] [cursor=pointer]:
+      - /url: "#"
+    - contentinfo [ref=e163]:
+      - generic [ref=e165]:
+        - generic [ref=e166]:
+          - paragraph [ref=e167]: Products
+          - list [ref=e168]:
+            - listitem [ref=e169]:
+              - link "PSL+" [ref=e170] [cursor=pointer]:
+                - /url: /products/accounting-and-financial/psl/
+            - listitem [ref=e171]:
+              - link "DPO" [ref=e172] [cursor=pointer]:
+                - /url: /products/accounting-and-financial/dpo/
+            - listitem [ref=e173]:
+              - link "MyCast&Crew" [ref=e174] [cursor=pointer]:
+                - /url: /products/mycc
+            - listitem [ref=e175]:
+              - link "Start+" [ref=e176] [cursor=pointer]:
+                - /url: /products/payroll-and-human-resources/start/
+            - listitem [ref=e177]:
+              - link "Hours+" [ref=e178] [cursor=pointer]:
+                - /url: /products/payroll-and-human-resources/hours/
+            - listitem [ref=e179]:
+              - link "Studio+" [ref=e180] [cursor=pointer]:
+                - /url: /content-and-collaboration/studio+/
+            - listitem [ref=e181]:
+              - link "Final Draft" [ref=e182] [cursor=pointer]:
+                - /url: https://finaldraft.com/
+            - listitem [ref=e183]:
+              - link "Reporting+" [ref=e184] [cursor=pointer]:
+                - /url: /products//metrics-and-insights/reporting/
+            - listitem [ref=e185]:
+              - link "Data+" [ref=e186] [cursor=pointer]:
+                - /url: /products//metrics-and-insights/data/
+        - generic [ref=e187]:
+          - paragraph [ref=e188]: Services
+          - list [ref=e189]:
+            - listitem [ref=e190]:
+              - link "Payroll" [ref=e191] [cursor=pointer]:
+                - /url: /services/payroll/
+            - listitem [ref=e192]:
+              - link "Financial Services" [ref=e193] [cursor=pointer]:
+                - /url: /services/financial-services/
+            - listitem [ref=e194]:
+              - link "Residuals" [ref=e195] [cursor=pointer]:
+                - /url: /services/residuals/
+            - listitem [ref=e196]:
+              - link "Workers’ Compensation" [ref=e197] [cursor=pointer]:
+                - /url: /services/workers-compensation/
+            - listitem [ref=e198]:
+              - link "Incentives Guide" [ref=e199] [cursor=pointer]:
+                - /url: /services/incentives-guide/
+            - listitem [ref=e200]:
+              - link "Incentives Map" [ref=e201] [cursor=pointer]:
+                - /url: /services/incentives-map/
+            - listitem [ref=e202]:
+              - link "Production Incentives Newsletters" [ref=e203] [cursor=pointer]:
+                - /url: /newsletters/
+        - link "Advertising & Live Entertainment" [ref=e205] [cursor=pointer]:
+          - /url: https://info.castandcrew.com/comm-talent-lve/
+          - text: Advertising & Live
+          - text: Entertainment
+        - generic [ref=e206]:
+          - paragraph [ref=e207]: Support and Forms
+          - list [ref=e208]:
+            - listitem [ref=e209]:
+              - link "Resource Library" [ref=e210] [cursor=pointer]:
+                - /url: /resource-library/
+            - listitem [ref=e211]:
+              - link "Self-Service Help Center" [ref=e212] [cursor=pointer]:
+                - /url: https://support.castandcrew.com/
+            - listitem [ref=e213]:
+              - link "Contact Us" [ref=e214] [cursor=pointer]:
+                - /url: /contact/
+            - listitem [ref=e215]:
+              - link "Vulnerability Disclosure Program Form" [ref=e216] [cursor=pointer]:
+                - /url: /vulnerability-disclosure-program/
+        - generic [ref=e217]:
+          - paragraph [ref=e218]: Our Companies
+          - list [ref=e219]:
+            - listitem [ref=e220]:
+              - link "Backstage" [ref=e221] [cursor=pointer]:
+                - /url: https://www.backstage.com/
+            - listitem [ref=e222]:
+              - link "Canada" [ref=e223] [cursor=pointer]:
+                - /url: /company/cast-crew-canada/
+            - listitem [ref=e224]:
+              - link "CAPS" [ref=e225] [cursor=pointer]:
+                - /url: https://www.capspayroll.com
+            - listitem [ref=e226]:
+              - link "Checks & Balances" [ref=e227] [cursor=pointer]:
+                - /url: https://candbpayroll.com
+            - listitem [ref=e228]:
+              - link "Final Draft" [ref=e229] [cursor=pointer]:
+                - /url: https://finaldraft.com
+            - listitem [ref=e230]:
+              - link "Media Services" [ref=e231] [cursor=pointer]:
+                - /url: https://www.mediaservices.com
+            - listitem [ref=e232]:
+              - link "Sargent-Disc" [ref=e233] [cursor=pointer]:
+                - /url: https://www.sargent-disc.com
+            - listitem [ref=e234]:
+              - link "The TEAM Companies" [ref=e235] [cursor=pointer]:
+                - /url: https://theteamcompanies.com
+        - generic [ref=e236]:
+          - paragraph [ref=e237]: Training
+          - list [ref=e238]:
+            - listitem [ref=e239]:
+              - link "Cast & Crew Learning Register for online training and improve your workflow." [ref=e240] [cursor=pointer]:
+                - /url: https://learning.castandcrew.com/cc
+                - text: Cast & Crew Learning
+                - generic [ref=e241]: Register for online training and improve your workflow.
+        - generic [ref=e242]:
+          - paragraph [ref=e243]: About Us
+          - list [ref=e244]:
+            - listitem [ref=e245]:
+              - link "Who We Are" [ref=e246] [cursor=pointer]:
+                - /url: /who-we-are/
+            - listitem [ref=e247]:
+              - link "Leadership" [ref=e248] [cursor=pointer]:
+                - /url: /leadership/
+            - listitem [ref=e249]:
+              - link "Careers" [ref=e250] [cursor=pointer]:
+                - /url: /careers/
+            - listitem [ref=e251]:
+              - link "Diversity, Equity, and Inclusion" [ref=e252] [cursor=pointer]:
+                - /url: /company/diversity-equity-and-inclusion/
+        - generic [ref=e253]:
+          - paragraph [ref=e254]: Resources
+          - list [ref=e255]:
+            - listitem [ref=e256]:
+              - link "Open Health" [ref=e257] [cursor=pointer]:
+                - /url: https://cc-openhealth.com/
+        - link "Blog" [ref=e259] [cursor=pointer]:
+          - /url: https://blog.castandcrew.com
+      - separator [ref=e260]
+      - generic [ref=e261]:
+        - generic [ref=e262]:
+          - paragraph [ref=e263]:
+            - text: ©
+            - strong [ref=e264]: 2026 Cast & Crew LLC.
+            - text: All rights reserved.
+          - paragraph [ref=e265]: Cast & Crew and its associated logos are trademarks of Cast & Crew LLC in the United States and/or other countries. All other trademarks are the property of their respective owners.
+          - paragraph [ref=e266]:
+            - link "Privacy Policy" [ref=e267] [cursor=pointer]:
+              - /url: /privacy-policy/
+            - text: "|"
+            - link "Terms of Use" [ref=e268] [cursor=pointer]:
+              - /url: /terms-of-use/
+          - text: 2300 Empire Avenue I Burbank, CA 91504
+        - list [ref=e270]:
+          - listitem [ref=e271]:
+            - link "LinkedIn" [ref=e272] [cursor=pointer]:
+              - /url: https://www.linkedin.com/company/castcrew/
+          - listitem [ref=e273]:
+            - link "X" [ref=e274] [cursor=pointer]:
+              - /url: https://x.com/CastAndCrewNews
+          - listitem [ref=e275]:
+            - link "Facebook" [ref=e276] [cursor=pointer]:
+              - /url: https://www.facebook.com/CastCrew/
+          - listitem [ref=e277]:
+            - link "YouTube" [ref=e278] [cursor=pointer]:
+              - /url: https://www.youtube.com/@CastandCrew
+          - listitem [ref=e279]:
+            - link "Instagram" [ref=e280] [cursor=pointer]:
+              - /url: https://www.instagram.com/castandcrewllc/

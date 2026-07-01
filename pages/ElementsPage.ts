@@ -4,94 +4,24 @@ import { expect, Locator, Page } from '@playwright/test';
 export class ElementPage {
 
     readonly page: Page;
-    readonly textBoxOption: Locator;
-    readonly fullNameField: Locator;
-    readonly emailField: Locator;
-    readonly currentAddress: Locator;
-    readonly permanentAddressField: Locator;
-    readonly submitButton: Locator;
-    readonly resultContainer: Locator;
-    readonly resultName: Locator;
-    readonly resultEmail: Locator;
-    readonly resultCurrentAddress: Locator;
-    readonly resultPermanentAddress: Locator;
+    readonly menuOption: (optionText: string) => Locator;
 
     constructor(page: Page) {
         this.page = page;
-        this.textBoxOption = page.getByText('Text Box');
-        this.fullNameField = page.getByRole('textbox', { name: 'Full Name' });
-        this.emailField = page.getByRole('textbox', { name: 'name@example.com' });
-        this.currentAddress = page.getByRole('textbox', { name: 'Current Address' });
-        this.permanentAddressField = page.locator('#permanentAddress');
-        this.submitButton = page.getByRole('button', { name: 'Submit' });
-        //----
-        this.resultContainer = page.locator('#output > div');
-        this.resultName = page.locator('#name');
-        this.resultEmail = page.locator('#email');
-        this.resultCurrentAddress = this.resultContainer.locator('#currentAddress');
-        this.resultPermanentAddress = this.resultContainer.locator('#permanentAddress');
-    }
 
+        this.menuOption = (optionText: string): Locator => {
+            return this.page.getByText(optionText);
+        };
+    }
 
     async navigate(url: string) {
         await this.page.goto(url);
     }
 
     /**selects the opcion text box in the lateral menu with the locator @textBoxOption */
-    async select_TextBox_Option() {
-
-        await this.textBoxOption.click();
-    }
-
-    async fillFullNameField(name: string) {
-
-        await this.fullNameField.fill(name);
-
-    }
-
-    async fillEmailField(email: string) {
-
-        await this.emailField.fill(email);
-
-    }
-
-    async fillcurrentAddressField(address: string) {
-        await this.currentAddress.pressSequentially(address);
-    }
-
-    async fillPermanentAddressField(permanent: string) {
-        await this.permanentAddressField.fill(permanent);
+    async select_Menu_Option(option: string) {
+        await this.menuOption(option).click();
     }
 
 
-    async clickButtonSubmit() {
-        await this.submitButton.click();
-    }
-
-    /**centralizes the form completion process */
-    async completeForm(
-        name: string,
-        email: string,
-        currentAddress: string,
-        permanentAddress: string
-    ) {
-        await this.select_TextBox_Option();
-        await this.fillFullNameField(name);
-        await this.fillEmailField(email);
-        await this.fillcurrentAddressField(currentAddress);
-        await this.fillPermanentAddressField(permanentAddress);
-        await this.clickButtonSubmit();
-    }
-
-    async validateFormResult(
-        name: string,
-        email: string,
-        currentAddress: string,
-        permanentAddress: string
-    ) {
-        await expect(this.resultName).toHaveText(`Name:${name}`);
-        await expect(this.resultEmail).toHaveText(`Email:${email}`);
-        await expect(this.resultCurrentAddress).toHaveText(`Current Address :${currentAddress}`);
-        await expect(this.resultPermanentAddress).toHaveText(`Permananet Address :${permanentAddress}`);
-    }
 }

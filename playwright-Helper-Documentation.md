@@ -16,8 +16,8 @@ import { test, expect, type Page, type Locator } from '@playwright/test';
 | `npx playwright test tests/example.spec.ts` | Ejecutar una prueba o archivo específico. |
 | `npx playwright test tests/example.spec.ts:25` | Ejecutar desde una línea específica. |
 | `npx playwright test --project=chromium` | Ejecutar pruebas en un navegador/proyecto específico. |
-| `npx playwright test --grep @smoke` | Ejecutar pruebas que coincidan con un tag o texto. |
-| `npx playwright test --grep-invert @flaky` | Excluir pruebas que coincidan con un tag o texto. |
+| `npx playwright test --grep '@smoke'` | Ejecutar pruebas que coincidan con un tag o texto. |
+| `npx playwright test --grep-invert '@flaky'` | Excluir pruebas que coincidan con un tag o texto. |
 | `npx playwright test --workers=1` | Ejecutar con un solo worker; útil para depurar o estabilizar CI. |
 | `npx playwright test --retries=2` | Reintentar tests fallidos. |
 | `npx playwright test --shard=1/4` | Ejecutar una partición de la suite; útil para CI paralelo. |
@@ -229,14 +229,13 @@ await expect(page2).toHaveTitle(/Detalle/);
 | **nth()** | `page.locator('.item').nth(2)` | Elemento por índice. |
 | **all()** | `const lista = await page.locator('#output > div > p').all();` | Obtener un array de locators; no auto-espera a que aparezcan todos. |
 | **textContent()** | `const texto = await page.locator('h1').textContent();` | Obtener texto manualmente; para validar texto suele ser mejor `expect(locator).toHaveText()`. |
-| **filter()** | `page.getByRole('row').filter({ hasText: 'Admin' })` | Filtra elementos. |
-| **has** | `page.locator('article', { has: page.getByText('Miami') })` | Filtra por un locator interno. |
-| **hasText** | `page.locator('.card', { hasText: 'Active' })` | Filtra por texto interno. |
-| **CSS combinado** | `page.locator('[id="userName"][placeholder="Full Name"]')` | Busca un mismo elemento que cumpla varios atributos. |
-| **locator encadenado** | `page.getByTestId('sidebar').getByRole('link', { name: 'Text Box' })` | Busca un elemento dentro de un contenedor. |
-| **filter combinado** | `page.getByTestId('menu-item').filter({ hasText: 'Text Box' })` | Filtra el locator anterior sin cambiar el elemento sobre el que se actuará. |
+| **filter()** | `page.getByRole('row').filter({ hasText: 'Admin' })` | Filtra una lista ya ubicada; devuelve el `row` que contiene `Admin`. La accion se hace sobre la fila, no sobre el texto. |
+| **has** | `page.locator('article', { has: page.getByText('Miami') })` o `page.getByRole('treeitem').filter({ has: page.getByTitle('Home') })` | Filtra padres por un elemento interno; devuelve el padre filtrado. La accion se hace sobre el padre. |
+| **hasText** | `page.locator('.card', { hasText: 'Active' })` | Filtra padres por texto interno; devuelve la `.card` completa que contiene `Active`. Es equivalente a `.filter({ hasText: 'Active' })`. |
+| **CSS combinado** | `page.locator('[id="userName"][placeholder="Full Name"]')` | Busca un mismo elemento que cumpla varios atributos; devuelve ese elemento. |
+| **locator encadenado** | `page.getByRole('treeitem').getByText('Home')` | Busca un hijo dentro del contenedor; devuelve el texto `Home`. La accion se hace sobre el hijo. |
 
-### Tomar un elemento especifico con `first()` y `nth()`
+### Tomar un elemento especifico por su número con:`first()` y `nth()`
 
 Este patron sirve cuando un locator devuelve varios elementos iguales y se quiere actuar sobre una posicion concreta de la lista. `first()` toma el primer elemento y `nth(2)` toma el tercero, porque el indice empieza en `0`.
 
@@ -261,23 +260,24 @@ await products.nth(2).getByRole('button', { name: 'Agregar' }).click();
 | `.nth(2)` | Selecciona la tercera card encontrada. |
 | `.getByRole('button', ...)` | Busca el boton dentro de la card seleccionada. |
 
-### Buscar un elemento dentro de otro
+### Buscar un hijo dentro de un padre
 
-Este patron sirve cuando primero se encuentra un contenedor o elemento padre, y luego se quiere buscar un elemento hijo dentro de ese resultado.
+Este patron sirve cuando primero se encuentra un contenedor o elemento padre, y luego se busca un elemento hijo dentro de ese resultado. La accion final se hace sobre el hijo encontrado.
 
 ```ts
-const sidebar = page.getByTestId('sidebar');
-
-await sidebar
-  .getByRole('link', { name: 'Text Box' })
+await page
+  .getByRole('treeitem')
+  .getByText('Home')
   .click();
 ```
 
 | Parte | Uso |
 | --- | --- |
-| `page.getByTestId('sidebar')` | Encuentra el contenedor donde se quiere buscar. |
-| `.getByRole('link', { name: 'Text Box' })` | Busca el link dentro de ese contenedor. |
-| `.click()` | Hace click sobre el link encontrado. |
+| `page.getByRole('treeitem')` | Encuentra los elementos padre del arbol. |
+| `.getByText('Home')` | Busca el texto `Home` dentro de esos padres. |
+| `.click()` | Hace click sobre el hijo encontrado: el texto `Home`. |
+
+La idea clave es: cuando encadenas otro locator, bajas a buscar dentro del elemento anterior. En este caso el locator apunta al hijo que tiene el texto `Home`, no al `treeitem` completo.
 
 Mismo patron con CSS:
 
@@ -318,22 +318,26 @@ await expect(page.locator('#output > div > p')).toHaveCount(4);
 | `> p` | Busca solo los `p` que son hijos directos de esos `div`. |
 | `toHaveCount(4)` | Valida que ese locator devuelva exactamente 4 elementos. |
 
-### Filtrar elementos combinando condiciones
+### Filtrar padres por hijos internos
 
-Este patron sirve cuando un locator puede devolver varios elementos y se quiere reducir la lista usando otra condicion, como texto interno o un locator hijo.
+Este patron sirve cuando un locator puede devolver varios elementos padre y se quiere reducir la lista usando una condicion interna, como texto o un locator hijo. La accion final se hace sobre el padre filtrado.
 
 ```ts
-await page
-  .getByTestId('menu-item')
-  .filter({ hasText: 'Text Box' })
-  .click();
+const homeTreeItem = page
+  .getByRole('treeitem')
+  .filter({ has: page.getByTitle('Home') });
+
+await homeTreeItem.locator('.rc-tree-switcher').click();
+await homeTreeItem.getByRole('checkbox', { name: 'Select Home' }).click();
 ```
 
 | Parte | Uso |
 | --- | --- |
-| `page.getByTestId('menu-item')` | Encuentra todos los elementos con ese test id. |
-| `.filter({ hasText: 'Text Box' })` | Filtra la lista anterior y deja solo los que contienen ese texto. |
-| `.click()` | Hace click sobre el elemento filtrado. |
+| `page.getByRole('treeitem')` | Encuentra todos los padres del arbol. |
+| `.filter({ has: page.getByTitle('Home') })` | Deja solo el padre que contiene un hijo con `title="Home"`. |
+| `homeTreeItem` | Apunta al padre filtrado: el `treeitem` completo. |
+| `homeTreeItem.locator('.rc-tree-switcher')` | Busca el switcher dentro del padre `Home`. |
+| `homeTreeItem.getByRole('checkbox', { name: 'Select Home' })` | Busca el checkbox dentro del padre `Home`. |
 
 Ejemplo combinando texto interno y un elemento hijo:
 
@@ -353,14 +357,6 @@ await page
 | `hasText: 'John Doe'` | Deja solo las cards que contienen el texto `John Doe`. |
 | `has: page.getByRole('button', { name: 'Edit' })` | Deja solo las cards que tambien contienen un boton `Edit`. |
 | `.click()` | Hace click sobre la card que cumple ambas condiciones. |
-
-Resumen:
-
-| Forma | Uso |
-| --- | --- |
-| `.locator(...)` | Busca dentro del locator anterior; cambia el contexto de busqueda al interior del elemento. |
-| `.filter(...)` | Filtra los elementos del locator anterior por una condicion como `hasText` o `has`. |
-| Encadenar dos locators | No crea una condicion tipo AND sobre el mismo elemento; busca descendientes dentro del locator anterior. |
 
 ### Strict mode en locators
 
@@ -580,20 +576,38 @@ const response = await responsePromise;
 | --- | --- | --- |
 | **toBeVisible()** | `await expect(locator).toBeVisible();` | Visible. |
 | **toBeHidden()** | `await expect(locator).toBeHidden();` | Oculto. |
+| **toBeAttached()** | `await expect(locator).toBeAttached();` | Existe en el DOM, aunque no necesariamente sea visible. |
+| **toBeInViewport()** | `await expect(locator).toBeInViewport();` | Esta dentro del area visible de la pantalla; util despues de hacer scroll. |
 | **toBeEnabled()** | `await expect(locator).toBeEnabled();` | Habilitado. |
 | **toBeDisabled()** | `await expect(locator).toBeDisabled();` | Deshabilitado. |
+| **toBeEditable()** | `await expect(locator).toBeEditable();` | El campo permite escritura, como un input o textarea editable. |
+| **toBeFocused()** | `await expect(locator).toBeFocused();` | El elemento tiene el foco actual del navegador. |
 | **toBeChecked()** | `await expect(locator).toBeChecked();` | Marcado. |
 | **toBeRequired()** | `await expect(locator).toBeRequired();` | Campo requerido. |
 | **toBeInvalid()** | `await expect(locator).toBeInvalid();` | Campo invalido segun validacion HTML. |
 | **toHaveText()** | `await expect(locator).toHaveText('Success');` | Texto exacto. |
 | **toContainText()** | `await expect(locator).toContainText('Success');` | Contiene texto. |
+| **toContainText() sin importar mayusculas/minusculas** | `await expect(locator).toContainText(new RegExp(text, 'i'));` | Contiene el texto de una variable ignorando mayusculas y minusculas. |
+| **toContainText() con regex directa** | `await expect(locator).toContainText(/success/i);` | Contiene un texto fijo ignorando mayusculas y minusculas. |
 | **toHaveValue()** | `await expect(locator).toHaveValue('Oscar');` | Valor del input. |
+| **toHaveValues()** | `await expect(locator).toHaveValues(['A', 'B']);` | Valida varios valores seleccionados, normalmente en un select multiple. |
 | **toHaveAttribute()** | `await expect(locator).toHaveAttribute('atributo', 'valor');` | Atributo y valor del atributo|
-| **toHaveClass()** | `await expect(locator).toHaveClass(/active/);` | Clase CSS. |
+| **toHaveId()** | `await expect(locator).toHaveId('user-name');` | Valida el id exacto del elemento. |
+| **toHaveJSProperty()** | `await expect(locator).toHaveJSProperty('checked', true);` | Valida una propiedad JavaScript del elemento, no solo un atributo HTML. |
+| **toHaveClass()** | `await expect(locator).toHaveClass(/active/);` | Valida TODAS las clases no solo una. |
+| **toContainClass()** | `await expect(locator).toContainClass('field-error');` | Validar que el elemento tenga una clase especifica, aunque tenga otras clases. |
+| **toHaveCSS()** | `await expect(locator).toHaveCSS('color', 'rgb(255, 0, 0)');` | Valida el valor CSS calculado por el navegador. |
 | **toHaveCount()** | `await expect(locator).toHaveCount(5);` | Valida cuantos elementos devuelve ese locator. |
 | **toHaveURL()** | `await expect(page).toHaveURL(/dashboard/);` | URL. |
 | **toHaveTitle()** | `await expect(page).toHaveTitle('Dashboard');` | Título. |
 | **toBeOK()** | `await expect(response).toBeOK();` | Respuesta API OK. |
+| **toBe()** | `expect(status).toBe(200);` | Igualdad exacta para valores primitivos o la misma referencia de objeto. |
+| **toEqual()** | `expect(user).toEqual({ name: 'Oscar' });` | Igualdad profunda para comparar objetos o arrays completos. |
+| **toContain()** | `expect(text).toContain('Success');` | Valida que un string o array contenga un valor. |
+| **toHaveProperty()** | `expect(user).toHaveProperty('email');` | Valida que un objeto tenga una propiedad especifica y opcionalmente su valor. |
+| **toMatch()** | `expect(email).toMatch(/@test\.com$/);` | Valida que un string coincida con texto o una expresion regular. |
+| **toBeTruthy()** | `expect(isLoggedIn).toBeTruthy();` | Valida que una condicion sea verdadera en JavaScript. |
+| **toBeFalsy()** | `expect(hasError).toBeFalsy();` | Valida que una condicion sea falsa en JavaScript. |
 | **toMatchObject()** | `expect(json).toMatchObject({ success: true });` | Validar objeto parcial. |
 
 ### Ejemplo de validacion de formulario
@@ -826,8 +840,8 @@ test('crear lead @smoke @critical', async ({ page }) => {
 ```
 
 ```bash
-npx playwright test --grep @smoke
-npx playwright test --grep-invert @flaky
+npx playwright test --grep '@smoke'
+npx playwright test --grep-invert '@flaky'
 ```
 
 ---

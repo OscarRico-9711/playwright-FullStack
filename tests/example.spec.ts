@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 
-test('fill in text box fields', async ({ page }) => {
+test.describe('Text Box examples', { tag: ['@regression', '@textbox'] }, () => {
+
+test('fill in text box fields', { tag: '@happy-path' }, async ({ page }) => {
   await page.goto('/elements');
 
   await page // busca elemento que cumpla con el rol de link y el nombre 'Text Box', luego filtra por el texto 'Text Box' y hace click en él
@@ -48,7 +50,7 @@ test('fill in text box fields', async ({ page }) => {
 
 });
 
-test('edit form', async ({ page }) => {
+test('edit form', { tag: '@happy-path' }, async ({ page }) => {
 
   await page.goto('/elements');
 
@@ -89,4 +91,6 @@ test('edit form', async ({ page }) => {
 
 test.afterEach(async ({ page }) => {
   await page.waitForTimeout(1000);
+});
+
 });
