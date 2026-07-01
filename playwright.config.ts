@@ -30,9 +30,9 @@ export default defineConfig({
     baseURL: 'https://demoqa.com/',
     headless: false, //shows the browser while running the tests
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    video: 'retain-on-first-failure',
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
+    trace: 'on',
 
     /*
     launchOptions: {

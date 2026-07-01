@@ -84,13 +84,13 @@ export class WebTablesComponent {
 
     async validatecreateduser(user: WebTableUser) {
 
+        //encontrar la columna por un texto intermedio y luego validar que contenga el texto de la columna
         const raw = this.page
             .locator('tbody')
             .filter({ has: this.page.getByText(user.email) });
-
-
         await expect(raw).toBeVisible();
 
+        // Validate that the row contains the expected user data
         await expect(raw).toContainText(user.firstName);
         await expect(raw).toContainText(user.lastName);
         await expect(raw).toContainText(user.age);

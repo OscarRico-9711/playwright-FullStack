@@ -1,11 +1,48 @@
 # 🚀 Playwright Cheat Sheet
+
+> Referencia rápida para escribir, depurar y estructurar tests con Playwright + TypeScript.
+> Usa el índice para saltar directo a lo que necesitas.
+
+<a id="indice"></a>
+## 📚 Índice
+
+**Fundamentos**
+[Imports](#imports) · [Comandos CLI](#cli) · [Configuración](#config) · [Estructura de un test y Hooks](#test-hooks)
+
+**Interacción con la página**
+[Navegación](#navegacion) · [Locators](#locators) · [Acciones](#acciones) · [Inputs](#inputs) · [Checkbox / Radio](#checkbox-radio) · [Select](#select) · [Drag & Drop](#drag-drop) · [Scroll](#scroll) · [Keyboard](#keyboard) · [Mouse](#mouse) · [Frames](#frames) · [Diálogos](#dialogos)
+
+**Esperas y validaciones**
+[Esperas](#esperas) · [Assertions](#assertions)
+
+**Archivos y visual**
+[Upload / Download](#upload-download) · [Screenshots](#screenshots) · [Visual testing](#visual-testing)
+
+**Red y API**
+[Network](#network) · [API testing](#api-testing)
+
+**Arquitectura y sesión**
+[Auth / storageState](#auth) · [Page Object Model](#pom) · [Fixtures](#fixtures)
+
+**Extras**
+[Accesibilidad (axe)](#accesibilidad) · [Mock de fecha/hora](#clock) · [Debugging](#debugging) · [CI (GitHub Actions)](#ci)
+
+**Cierre**
+[Anti-patterns](#anti-patterns) · [Fuentes oficiales](#fuentes)
+
 ---
-## 📌 Imports básicos
+
+<a id="imports"></a>
+## 📦 Imports básicos
+
 ```ts
 import { test, expect, type Page, type Locator } from '@playwright/test';
 ```
+
 ---
-## 🧰 Comandos útiles de Playwright
+
+<a id="cli"></a>
+## 🧰 Comandos útiles (CLI)
 
 | Comando | Uso |
 | --- | --- |
@@ -18,6 +55,7 @@ import { test, expect, type Page, type Locator } from '@playwright/test';
 | `npx playwright test --project=chromium` | Ejecutar pruebas en un navegador/proyecto específico. |
 | `npx playwright test --grep '@smoke'` | Ejecutar pruebas que coincidan con un tag o texto. |
 | `npx playwright test --grep-invert '@flaky'` | Excluir pruebas que coincidan con un tag o texto. |
+| `npx playwright test --repeat-each=5` | Repetir cada test N veces; útil para cazar flakiness. |
 | `npx playwright test --workers=1` | Ejecutar con un solo worker; útil para depurar o estabilizar CI. |
 | `npx playwright test --retries=2` | Reintentar tests fallidos. |
 | `npx playwright test --shard=1/4` | Ejecutar una partición de la suite; útil para CI paralelo. |
@@ -31,7 +69,9 @@ import { test, expect, type Page, type Locator } from '@playwright/test';
 | `npx playwright --help` | Ver ayuda general de comandos. |
 
 ---
-## ⚙️ Configuraciones más comunes en `playwright.config.ts`
+
+<a id="config"></a>
+## ⚙️ Configuración (`playwright.config.ts`)
 
 | Configuración | Ejemplo | Uso |
 | --- | --- | --- |
@@ -44,6 +84,8 @@ import { test, expect, type Page, type Locator } from '@playwright/test';
 | **workers** | `workers: process.env.CI ? 2 : undefined` | Número de procesos paralelos; usar `1` solo para debugging o suites con datos compartidos/inestables. |
 | **reporter** | `reporter: [['html'], ['list']]` | Reportes de ejecución. |
 | **outputDir** | `outputDir: 'test-results'` | Carpeta para screenshots, videos, traces y otros artefactos. |
+| **globalSetup** | `globalSetup: require.resolve('./global-setup')` | Script que corre **una vez** antes de toda la suite (sin `page`). |
+| **globalTeardown** | `globalTeardown: require.resolve('./global-teardown')` | Script que corre **una vez** al terminar toda la suite. |
 | **baseURL** | `baseURL: process.env.BASE_URL` | Permite usar `page.goto('/')` sin repetir dominio. |
 | **trace** | `trace: 'on-first-retry'` | Guardar trace para depurar fallos. |
 | **screenshot** | `screenshot: 'only-on-failure'` | Screenshot automático cuando falla un test. |
@@ -57,6 +99,8 @@ import { test, expect, type Page, type Locator } from '@playwright/test';
 | **extraHTTPHeaders** | `extraHTTPHeaders: { Authorization: 'Bearer token' }` | Headers comunes para API testing. |
 | **proxy** | `proxy: { server: 'http://proxy:8080' }` | Ejecutar tests detrás de proxy. |
 | **toHaveScreenshot** | `expect: { toHaveScreenshot: { maxDiffPixels: 100 } }` | Tolerancia global para visual testing. |
+
+> **`globalSetup` vs setup project:** `globalSetup` corre una vez, no tiene `page` ni fixtures — úsalo para sembrar BD, arrancar servicios o generar tokens. El **setup project** (con `dependencies`) corre como un test normal, sí tiene navegador, y es el patrón correcto para hacer login y guardar `storageState`. Ver [Auth](#auth).
 
 ### Ejemplo base recomendado
 
@@ -160,10 +204,50 @@ export default defineConfig({
 
 ---
 
-## 🧩 Playwright: métodos y formas comunes
+<a id="test-hooks"></a>
+## 📝 Estructura de un test y Hooks
+
+### Test
+
+| Método | Código | Uso |
+| --- | --- | --- |
+| **test()** | `test('Login', async ({ page }) => {});` | Crear test. |
+| **test.only()** | `test.only('Login', async () => {});` | Ejecutar solo un test. Evitar subirlo. |
+| **test.skip()** | `test.skip('Login', async () => {});` | Omitir test. |
+| **test.fixme()** | `test.fixme('Bug conocido', async () => {});` | Marcar test pendiente por bug. |
+| **test.describe()** | `test.describe('Login', () => {});` | Agrupar tests. |
+| **test.describe.serial()** | `test.describe.serial('flujo', () => {});` | Corren en orden; si uno falla, se saltan los siguientes. |
+| **test.describe.parallel()** | `test.describe.parallel('grupo', () => {});` | Fuerza paralelo dentro del archivo aunque `fullyParallel` sea false. |
+| **test.step()** | `await test.step('Login', async () => {});` | Agrupar pasos del test (mejora el reporte). |
+| **test.slow()** | `test.slow();` | Triplica timeout del test. |
+| **test.use()** | `test.use({ viewport: { width: 390, height: 844 } });` | Config específica por archivo/test. |
+
+### Hooks
+
+| Método | Código | Uso |
+| --- | --- | --- |
+| **beforeAll()** | `test.beforeAll(async () => {});` | Antes de todos los tests del archivo. |
+| **beforeEach()** | `test.beforeEach(async ({ page }) => {});` | Antes de cada test. |
+| **afterEach()** | `test.afterEach(async ({ page }) => {});` | Después de cada test. |
+| **afterAll()** | `test.afterAll(async () => {});` | Después de todos los tests del archivo. |
+
+### Tags para suites grandes
+
+```ts
+test('crear lead @smoke @critical', async ({ page }) => {
+  await page.goto('/leads');
+  // ...
+});
+```
+
+```bash
+npx playwright test --grep '@smoke'
+npx playwright test --grep-invert '@flaky'
+```
 
 ---
 
+<a id="navegacion"></a>
 ## 🌐 Navegación
 
 | Método | Código | Uso |
@@ -176,9 +260,7 @@ export default defineConfig({
 | **url()** | `const url = page.url();` | Obtiene la URL actual. |
 | **title()** | `const title = await page.title();` | Obtiene el título de la página. |
 
----
-
-## 🖥️ Cambio de pantalla / pestañas / popups
+### Cambio de pantalla / pestañas / popups
 
 | Caso | Código | Uso |
 | --- | --- | --- |
@@ -188,7 +270,7 @@ export default defineConfig({
 | **bringToFront()** | `await page2.bringToFront();` | Traer una pestaña al frente. |
 | **close()** | `await page2.close();` | Cerrar una pestaña/página. |
 
-### Popup correcto
+#### Popup correcto
 
 ```ts
 const popupPromise = page.waitForEvent('popup');
@@ -199,7 +281,7 @@ await popup.waitForLoadState();
 await expect(popup).toHaveURL(/detalle/);
 ```
 
-### Nueva página desde `browserContext`
+#### Nueva página desde `browserContext`
 
 ```ts
 const pagePromise = context.waitForEvent('page');
@@ -212,7 +294,10 @@ await expect(page2).toHaveTitle(/Detalle/);
 
 ---
 
+<a id="locators"></a>
 ## 🎯 Locators
+
+### Tabla rápida
 
 | Método | Código | Uso |
 | --- | --- | --- |
@@ -232,10 +317,26 @@ await expect(page2).toHaveTitle(/Detalle/);
 | **filter()** | `page.getByRole('row').filter({ hasText: 'Admin' })` | Filtra una lista ya ubicada; devuelve el `row` que contiene `Admin`. La accion se hace sobre la fila, no sobre el texto. |
 | **has** | `page.locator('article', { has: page.getByText('Miami') })` o `page.getByRole('treeitem').filter({ has: page.getByTitle('Home') })` | Filtra padres por un elemento interno; devuelve el padre filtrado. La accion se hace sobre el padre. |
 | **hasText** | `page.locator('.card', { hasText: 'Active' })` | Filtra padres por texto interno; devuelve la `.card` completa que contiene `Active`. Es equivalente a `.filter({ hasText: 'Active' })`. |
+| **or()** | `botonA.or(botonB)` | Coincide con el primero de los dos que aparezca; útil para UIs variables. |
+| **and()** | `page.getByRole('button').and(page.getByTitle('Guardar'))` | Debe cumplir ambos locators a la vez. |
 | **CSS combinado** | `page.locator('[id="userName"][placeholder="Full Name"]')` | Busca un mismo elemento que cumpla varios atributos; devuelve ese elemento. |
 | **locator encadenado** | `page.getByRole('treeitem').getByText('Home')` | Busca un hijo dentro del contenedor; devuelve el texto `Home`. La accion se hace sobre el hijo. |
 
-### Tomar un elemento especifico por su número con:`first()` y `nth()`
+### `or()` y `and()`
+
+```ts
+// or(): coincide con el primero que aparezca (útil cuando el texto del boton varia)
+const confirmar = page
+  .getByRole('button', { name: 'Aceptar' })
+  .or(page.getByRole('button', { name: 'OK' }));
+await confirmar.click();
+
+// and(): debe cumplir ambas condiciones a la vez
+const guardar = page.getByRole('button').and(page.getByTitle('Guardar'));
+await expect(guardar).toBeVisible();
+```
+
+### Tomar un elemento especifico por su número con `first()` y `nth()`
 
 Este patron sirve cuando un locator devuelve varios elementos iguales y se quiere actuar sobre una posicion concreta de la lista. `first()` toma el primer elemento y `nth(2)` toma el tercero, porque el indice empieza en `0`.
 
@@ -395,6 +496,7 @@ await page.getByRole('button', { name: 'Save' }).first().click();
 
 ---
 
+<a id="acciones"></a>
 ## 👆 Acciones
 
 | Método | Código | Uso |
@@ -404,11 +506,12 @@ await page.getByRole('button', { name: 'Save' }).first().click();
 | **hover()** | `await page.getByText('Products').hover();` | Pasar el mouse. |
 | **focus()** | `await page.locator('#email').focus();` | Dar foco. |
 | **blur()** | `await page.locator('#email').blur();` | Quitar foco. |
-| **tap()** | `await page.getByRole('button').tap();` | Tap en móviles. |
+| **tap()** | `await page.getByRole('button').tap();` | Tap en móviles (requiere `hasTouch`). |
 | **dispatchEvent()** | `await locator.dispatchEvent('click');` | Disparar evento DOM; usar solo si no sirve acción real. |
 
 ---
 
+<a id="inputs"></a>
 ## ✍️ Inputs
 
 | Método | Código | Uso |
@@ -423,6 +526,7 @@ await page.getByRole('button', { name: 'Save' }).first().click();
 
 ---
 
+<a id="checkbox-radio"></a>
 ## ☑️ Checkbox / Radio
 
 | Método | Código | Uso |
@@ -434,6 +538,7 @@ await page.getByRole('button', { name: 'Save' }).first().click();
 
 ---
 
+<a id="select"></a>
 ## 📋 Select
 
 | Método | Código | Uso |
@@ -444,6 +549,7 @@ await page.getByRole('button', { name: 'Save' }).first().click();
 
 ---
 
+<a id="drag-drop"></a>
 ## 🎭 Drag & Drop
 
 | Método | Código | Uso |
@@ -452,65 +558,7 @@ await page.getByRole('button', { name: 'Save' }).first().click();
 
 ---
 
-## 📸 Screenshots
-
-| Método | Código | Uso |
-| --- | --- | --- |
-| **page.screenshot()** | `await page.screenshot({ path: 'page.png' });` | Capturar página. |
-| **fullPage** | `await page.screenshot({ path: 'full.png', fullPage: true });` | Capturar página completa. |
-| **locator.screenshot()** | `await page.locator('#logo').screenshot({ path: 'logo.png' });` | Capturar elemento. |
-
----
-
-## 🖼️ Visual testing
-
-| Método / comando | Código | Uso |
-| --- | --- | --- |
-| **toHaveScreenshot() página** | `await expect(page).toHaveScreenshot('home.png');` | Comparar screenshot de toda la página. |
-| **toHaveScreenshot() elemento** | `await expect(locator).toHaveScreenshot('card.png');` | Comparar screenshot de un componente. |
-| **maxDiffPixels** | `await expect(page).toHaveScreenshot({ maxDiffPixels: 100 });` | Permitir diferencia máxima en pixeles. |
-| **mask** | `await expect(page).toHaveScreenshot({ mask: [page.getByTestId('clock')] });` | Ocultar zonas dinámicas. |
-| **stylePath** | `await expect(page).toHaveScreenshot({ stylePath: './screenshot.css' });` | Aplicar CSS para estabilizar screenshots. |
-| **update snapshots** | `npx playwright test --update-snapshots` | Actualizar baselines cuando el cambio visual es esperado. |
-| **ignore snapshots** | `npx playwright test --ignore-snapshots` | Ignorar comparaciones visuales temporalmente. |
-
-### Ejemplo visual testing de componente
-
-```ts
-test('property card visual', async ({ page }) => {
-  await page.goto('/properties');
-
-  const card = page.getByTestId('property-card').first();
-  await expect(card).toBeVisible();
-  await expect(card).toHaveScreenshot('property-card.png');
-});
-```
-
-> Recomendación: generar y comparar snapshots en el mismo sistema operativo/browser que usa CI para evitar diferencias por fuentes, rendering o hardware.
-
----
-
-## 📂 Upload / Download
-
-| Método | Código | Uso |
-| --- | --- | --- |
-| **setInputFiles()** | `await page.locator('input[type=file]').setInputFiles('cv.pdf');` | Subir archivo. |
-| **waitForEvent('download')** | `const downloadPromise = page.waitForEvent('download');` | Crear espera antes del click. |
-| **saveAs()** | `await download.saveAs('report.pdf');` | Guardar descarga. |
-| **suggestedFilename()** | `download.suggestedFilename()` | Obtener nombre sugerido del archivo. |
-
-### Download correcto
-
-```ts
-const downloadPromise = page.waitForEvent('download');
-await page.getByRole('button', { name: 'Descargar' }).click();
-
-const download = await downloadPromise;
-await download.saveAs(`downloads/${download.suggestedFilename()}`);
-```
-
----
-
+<a id="scroll"></a>
 ## 📜 Scroll
 
 | Método | Código | Uso |
@@ -521,6 +569,7 @@ await download.saveAs(`downloads/${download.suggestedFilename()}`);
 
 ---
 
+<a id="keyboard"></a>
 ## ⌨️ Keyboard
 
 | Método | Código | Uso |
@@ -532,6 +581,7 @@ await download.saveAs(`downloads/${download.suggestedFilename()}`);
 
 ---
 
+<a id="mouse"></a>
 ## 🖱️ Mouse
 
 | Método | Código | Uso |
@@ -543,87 +593,7 @@ await download.saveAs(`downloads/${download.suggestedFilename()}`);
 
 ---
 
-## ⏳ Esperas
-
-| Método | Código | Uso |
-| --- | --- | --- |
-| **waitForURL()** | `await page.waitForURL('**/dashboard');` | Esperar URL. |
-| **toHaveURL()** | `await expect(page).toHaveURL(/dashboard/);` | Mejor para validar navegación. |
-| **waitForLoadState()** | `await page.waitForLoadState('domcontentloaded');` | Esperar carga básica del DOM. |
-| **waitForResponse()** | `await page.waitForResponse(r => r.url().includes('/users') && r.status() === 200);` | Esperar respuesta API. |
-| **waitForRequest()** | `await page.waitForRequest('**/login');` | Esperar request. |
-| **waitForEvent()** | `await page.waitForEvent('popup');` | Esperar evento. |
-| **waitForFunction()** | `await page.waitForFunction(() => document.title === 'Home');` | Esperar condición JS. |
-| **waitForTimeout()** | `await page.waitForTimeout(1000);` | Espera fija; evitar salvo debugging. |
-
-### Patrón recomendado para eventos
-
-```ts
-const responsePromise = page.waitForResponse(
-  response => response.url().includes('/api/users') && response.status() === 200
-);
-
-await page.getByRole('button', { name: 'Buscar' }).click();
-const response = await responsePromise;
-```
-
-> Recomendación: preferir `expect(locator).toBeVisible()`, `expect(page).toHaveURL()` o esperar una respuesta específica antes que `waitForTimeout()`.
-
----
-
-## ✅ Assertions
-
-| Método | Código | Uso |
-| --- | --- | --- |
-| **toBeVisible()** | `await expect(locator).toBeVisible();` | Visible. |
-| **toBeHidden()** | `await expect(locator).toBeHidden();` | Oculto. |
-| **toBeAttached()** | `await expect(locator).toBeAttached();` | Existe en el DOM, aunque no necesariamente sea visible. |
-| **toBeInViewport()** | `await expect(locator).toBeInViewport();` | Esta dentro del area visible de la pantalla; util despues de hacer scroll. |
-| **toBeEnabled()** | `await expect(locator).toBeEnabled();` | Habilitado. |
-| **toBeDisabled()** | `await expect(locator).toBeDisabled();` | Deshabilitado. |
-| **toBeEditable()** | `await expect(locator).toBeEditable();` | El campo permite escritura, como un input o textarea editable. |
-| **toBeFocused()** | `await expect(locator).toBeFocused();` | El elemento tiene el foco actual del navegador. |
-| **toBeChecked()** | `await expect(locator).toBeChecked();` | Marcado. |
-| **toBeRequired()** | `await expect(locator).toBeRequired();` | Campo requerido. |
-| **toBeInvalid()** | `await expect(locator).toBeInvalid();` | Campo invalido segun validacion HTML. |
-| **toHaveText()** | `await expect(locator).toHaveText('Success');` | Texto exacto. |
-| **toContainText()** | `await expect(locator).toContainText('Success');` | Contiene texto. |
-| **toContainText() sin importar mayusculas/minusculas** | `await expect(locator).toContainText(new RegExp(text, 'i'));` | Contiene el texto de una variable ignorando mayusculas y minusculas. |
-| **toContainText() con regex directa** | `await expect(locator).toContainText(/success/i);` | Contiene un texto fijo ignorando mayusculas y minusculas. |
-| **toHaveValue()** | `await expect(locator).toHaveValue('Oscar');` | Valor del input. |
-| **toHaveValues()** | `await expect(locator).toHaveValues(['A', 'B']);` | Valida varios valores seleccionados, normalmente en un select multiple. |
-| **toHaveAttribute()** | `await expect(locator).toHaveAttribute('atributo', 'valor');` | Atributo y valor del atributo|
-| **toHaveId()** | `await expect(locator).toHaveId('user-name');` | Valida el id exacto del elemento. |
-| **toHaveJSProperty()** | `await expect(locator).toHaveJSProperty('checked', true);` | Valida una propiedad JavaScript del elemento, no solo un atributo HTML. |
-| **toHaveClass()** | `await expect(locator).toHaveClass(/active/);` | Valida TODAS las clases no solo una. |
-| **toContainClass()** | `await expect(locator).toContainClass('field-error');` | Validar que el elemento tenga una clase especifica, aunque tenga otras clases. |
-| **toHaveCSS()** | `await expect(locator).toHaveCSS('color', 'rgb(255, 0, 0)');` | Valida el valor CSS calculado por el navegador. |
-| **toHaveCount()** | `await expect(locator).toHaveCount(5);` | Valida cuantos elementos devuelve ese locator. |
-| **toHaveURL()** | `await expect(page).toHaveURL(/dashboard/);` | URL. |
-| **toHaveTitle()** | `await expect(page).toHaveTitle('Dashboard');` | Título. |
-| **toBeOK()** | `await expect(response).toBeOK();` | Respuesta API OK. |
-| **toBe()** | `expect(status).toBe(200);` | Igualdad exacta para valores primitivos o la misma referencia de objeto. |
-| **toEqual()** | `expect(user).toEqual({ name: 'Oscar' });` | Igualdad profunda para comparar objetos o arrays completos. |
-| **toContain()** | `expect(text).toContain('Success');` | Valida que un string o array contenga un valor. |
-| **toHaveProperty()** | `expect(user).toHaveProperty('email');` | Valida que un objeto tenga una propiedad especifica y opcionalmente su valor. |
-| **toMatch()** | `expect(email).toMatch(/@test\.com$/);` | Valida que un string coincida con texto o una expresion regular. |
-| **toBeTruthy()** | `expect(isLoggedIn).toBeTruthy();` | Valida que una condicion sea verdadera en JavaScript. |
-| **toBeFalsy()** | `expect(hasError).toBeFalsy();` | Valida que una condicion sea falsa en JavaScript. |
-| **toMatchObject()** | `expect(json).toMatchObject({ success: true });` | Validar objeto parcial. |
-
-### Ejemplo de validacion de formulario
-
-```ts
-const fullName = page.getByLabel('Full Name');
-
-await expect(fullName).toBeRequired();
-
-await fullName.fill('');
-await expect(fullName).toBeInvalid();
-```
-
----
-
+<a id="frames"></a>
 ## 🌍 Frames
 
 | Método | Código | Uso |
@@ -641,7 +611,8 @@ await frame.getByRole('button', { name: 'Pay' }).click();
 
 ---
 
-## 🚨 Diálogos importantes
+<a id="dialogos"></a>
+## 🚨 Diálogos
 
 | Tipo / método | Código | Uso |
 | --- | --- | --- |
@@ -689,6 +660,181 @@ await page.getByRole('button', { name: 'Cambiar nombre' }).click();
 
 ---
 
+<a id="esperas"></a>
+## ⏳ Esperas
+
+| Método | Código | Uso |
+| --- | --- | --- |
+| **waitForURL()** | `await page.waitForURL('**/dashboard');` | Esperar URL. |
+| **toHaveURL()** | `await expect(page).toHaveURL(/dashboard/);` | Mejor para validar navegación. |
+| **waitForLoadState()** | `await page.waitForLoadState('domcontentloaded');` | Esperar carga básica del DOM. |
+| **waitForResponse()** | `await page.waitForResponse(r => r.url().includes('/users') && r.status() === 200);` | Esperar respuesta API. |
+| **waitForRequest()** | `await page.waitForRequest('**/login');` | Esperar request. |
+| **waitForEvent()** | `await page.waitForEvent('popup');` | Esperar evento. |
+| **waitForFunction()** | `await page.waitForFunction(() => document.title === 'Home');` | Esperar condición JS. |
+| **waitForTimeout()** | `await page.waitForTimeout(1000);` | Espera fija; evitar salvo debugging. |
+
+### Patrón recomendado para eventos
+
+```ts
+const responsePromise = page.waitForResponse(
+  response => response.url().includes('/api/users') && response.status() === 200
+);
+
+await page.getByRole('button', { name: 'Buscar' }).click();
+const response = await responsePromise;
+```
+
+> Recomendación: preferir `expect(locator).toBeVisible()`, `expect(page).toHaveURL()` o esperar una respuesta específica antes que `waitForTimeout()`.
+
+---
+
+<a id="assertions"></a>
+## ✅ Assertions
+
+> **Clave para entender flakiness:** las assertions **web-first** (reciben un `Locator`/`Page`/`APIResponse`) **reintentan automáticamente** hasta el `expect.timeout`. Las **genéricas** (reciben un valor ya resuelto) **evalúan una sola vez**, sin reintento — por eso, si comparas un valor que aún no llegó, fallan al instante.
+
+### Auto-retry (web-first) — reintentan hasta el timeout
+
+| Método | Código | Uso |
+| --- | --- | --- |
+| **toBeVisible()** | `await expect(locator).toBeVisible();` | Visible. |
+| **toBeHidden()** | `await expect(locator).toBeHidden();` | Oculto. |
+| **toBeAttached()** | `await expect(locator).toBeAttached();` | Existe en el DOM, aunque no necesariamente sea visible. |
+| **toBeInViewport()** | `await expect(locator).toBeInViewport();` | Esta dentro del area visible; util despues de hacer scroll. |
+| **toBeEnabled()** | `await expect(locator).toBeEnabled();` | Habilitado. |
+| **toBeDisabled()** | `await expect(locator).toBeDisabled();` | Deshabilitado. |
+| **toBeEditable()** | `await expect(locator).toBeEditable();` | El campo permite escritura. |
+| **toBeFocused()** | `await expect(locator).toBeFocused();` | El elemento tiene el foco actual. |
+| **toBeChecked()** | `await expect(locator).toBeChecked();` | Marcado. |
+| **toBeRequired()** | `await expect(locator).toBeRequired();` | Campo requerido. |
+| **toBeInvalid()** | `await expect(locator).toBeInvalid();` | Campo invalido segun validacion HTML. |
+| **toBeEmpty()** | `await expect(locator).toBeEmpty();` | El elemento no tiene texto ni hijos. |
+| **toHaveText()** | `await expect(locator).toHaveText('Success');` | Texto exacto. |
+| **toContainText()** | `await expect(locator).toContainText('Success');` | Contiene texto. |
+| **toContainText() ignorando mayúsculas** | `await expect(locator).toContainText(/success/i);` | Contiene texto ignorando mayúsculas/minúsculas. |
+| **toHaveValue()** | `await expect(locator).toHaveValue('Oscar');` | Valor del input. |
+| **toHaveValues()** | `await expect(locator).toHaveValues(['A', 'B']);` | Varios valores seleccionados (select múltiple). |
+| **toHaveAttribute()** | `await expect(locator).toHaveAttribute('atributo', 'valor');` | Atributo y su valor. |
+| **toHaveId()** | `await expect(locator).toHaveId('user-name');` | Valida el id exacto. |
+| **toHaveJSProperty()** | `await expect(locator).toHaveJSProperty('checked', true);` | Valida una propiedad JavaScript, no solo un atributo HTML. |
+| **toHaveClass()** | `await expect(locator).toHaveClass(/active/);` | Valida TODAS las clases (usa regex para una parcial). |
+| **toContainClass()** | `await expect(locator).toContainClass('field-error');` | Valida que tenga una clase específica aunque tenga otras. |
+| **toHaveCSS()** | `await expect(locator).toHaveCSS('color', 'rgb(255, 0, 0)');` | Valida el CSS calculado por el navegador. |
+| **toHaveCount()** | `await expect(locator).toHaveCount(5);` | Cuántos elementos devuelve el locator. |
+| **toHaveRole()** | `await expect(locator).toHaveRole('button');` | Valida el rol accesible (ARIA). |
+| **toHaveAccessibleName()** | `await expect(locator).toHaveAccessibleName('Enviar');` | Valida el nombre accesible del elemento. |
+| **toHaveURL()** | `await expect(page).toHaveURL(/dashboard/);` | URL de la página. |
+| **toHaveTitle()** | `await expect(page).toHaveTitle('Dashboard');` | Título de la página. |
+| **toBeOK()** | `await expect(response).toBeOK();` | Respuesta API con status 2xx. |
+
+### Genéricas de expect — NO reintentan (evalúan una vez)
+
+| Método | Código | Uso |
+| --- | --- | --- |
+| **toBe()** | `expect(status).toBe(200);` | Igualdad exacta (primitivos o misma referencia). |
+| **toEqual()** | `expect(user).toEqual({ name: 'Oscar' });` | Igualdad profunda de objetos/arrays. |
+| **toContain()** | `expect(text).toContain('Success');` | Un string o array contiene un valor. |
+| **toHaveProperty()** | `expect(user).toHaveProperty('email');` | Un objeto tiene una propiedad (y opcionalmente su valor). |
+| **toMatch()** | `expect(email).toMatch(/@test\.com$/);` | Un string coincide con texto o regex. |
+| **toMatchObject()** | `expect(json).toMatchObject({ success: true });` | Objeto parcial. |
+| **toBeTruthy()** | `expect(isLoggedIn).toBeTruthy();` | La condición es verdadera. |
+| **toBeFalsy()** | `expect(hasError).toBeFalsy();` | La condición es falsa. |
+| **toBeGreaterThan()** | `expect(users.length).toBeGreaterThan(0);` | Comparación numérica. |
+
+### `expect.poll` y `expect.soft`
+
+```ts
+// expect.poll: reintenta una función custom hasta que cumpla o expire el timeout.
+// Útil cuando no hay un assertion web-first directo.
+await expect.poll(async () => {
+  const res = await request.get('/api/status');
+  return res.status();
+}, { timeout: 10_000 }).toBe(200);
+
+// expect.soft: NO detiene el test al fallar; reporta todos los fallos al final.
+// Ideal para validar varios campos de un formulario en una sola corrida.
+await expect.soft(page.getByTestId('nombre')).toHaveText('Oscar');
+await expect.soft(page.getByTestId('rol')).toHaveText('Admin');
+// el test continúa aunque el primero falle
+```
+
+### Ejemplo de validacion de formulario
+
+```ts
+const fullName = page.getByLabel('Full Name');
+
+await expect(fullName).toBeRequired();
+
+await fullName.fill('');
+await expect(fullName).toBeInvalid();
+```
+
+---
+
+<a id="upload-download"></a>
+## 📂 Upload / Download
+
+| Método | Código | Uso |
+| --- | --- | --- |
+| **setInputFiles()** | `await page.locator('input[type=file]').setInputFiles('cv.pdf');` | Subir archivo. |
+| **waitForEvent('download')** | `const downloadPromise = page.waitForEvent('download');` | Crear espera antes del click. |
+| **saveAs()** | `await download.saveAs('report.pdf');` | Guardar descarga. |
+| **suggestedFilename()** | `download.suggestedFilename()` | Obtener nombre sugerido del archivo. |
+
+### Download correcto
+
+```ts
+const downloadPromise = page.waitForEvent('download');
+await page.getByRole('button', { name: 'Descargar' }).click();
+
+const download = await downloadPromise;
+await download.saveAs(`downloads/${download.suggestedFilename()}`);
+```
+
+---
+
+<a id="screenshots"></a>
+## 📸 Screenshots
+
+| Método | Código | Uso |
+| --- | --- | --- |
+| **page.screenshot()** | `await page.screenshot({ path: 'page.png' });` | Capturar página. |
+| **fullPage** | `await page.screenshot({ path: 'full.png', fullPage: true });` | Capturar página completa. |
+| **locator.screenshot()** | `await page.locator('#logo').screenshot({ path: 'logo.png' });` | Capturar elemento. |
+
+---
+
+<a id="visual-testing"></a>
+## 🖼️ Visual testing
+
+| Método / comando | Código | Uso |
+| --- | --- | --- |
+| **toHaveScreenshot() página** | `await expect(page).toHaveScreenshot('home.png');` | Comparar screenshot de toda la página. |
+| **toHaveScreenshot() elemento** | `await expect(locator).toHaveScreenshot('card.png');` | Comparar screenshot de un componente. |
+| **maxDiffPixels** | `await expect(page).toHaveScreenshot({ maxDiffPixels: 100 });` | Permitir diferencia máxima en pixeles. |
+| **mask** | `await expect(page).toHaveScreenshot({ mask: [page.getByTestId('clock')] });` | Ocultar zonas dinámicas. |
+| **stylePath** | `await expect(page).toHaveScreenshot({ stylePath: './screenshot.css' });` | Aplicar CSS para estabilizar screenshots. |
+| **update snapshots** | `npx playwright test --update-snapshots` | Actualizar baselines cuando el cambio visual es esperado. |
+| **ignore snapshots** | `npx playwright test --ignore-snapshots` | Ignorar comparaciones visuales temporalmente. |
+
+### Ejemplo visual testing de componente
+
+```ts
+test('property card visual', async ({ page }) => {
+  await page.goto('/properties');
+
+  const card = page.getByTestId('property-card').first();
+  await expect(card).toBeVisible();
+  await expect(card).toHaveScreenshot('property-card.png');
+});
+```
+
+> Recomendación: generar y comparar snapshots en el mismo sistema operativo/browser que usa CI para evitar diferencias por fuentes, rendering o hardware.
+
+---
+
+<a id="network"></a>
 ## 🌐 Network
 
 | Método | Código | Uso |
@@ -733,6 +879,7 @@ await page.route('**/api/**', async route => {
 
 ---
 
+<a id="api-testing"></a>
 ## 🔌 API testing
 
 | Método / fixture | Código | Uso |
@@ -807,46 +954,7 @@ test('GET users con contexto API manual', async () => {
 
 ---
 
-## 🧪 Hooks
-
-| Método | Código | Uso |
-| --- | --- | --- |
-| **beforeAll()** | `test.beforeAll(async () => {});` | Antes de todos los tests. |
-| **beforeEach()** | `test.beforeEach(async ({ page }) => {});` | Antes de cada test. |
-| **afterEach()** | `test.afterEach(async ({ page }) => {});` | Después de cada test. |
-| **afterAll()** | `test.afterAll(async () => {});` | Después de todos los tests. |
-
----
-
-## 📝 Test
-
-| Método | Código | Uso |
-| --- | --- | --- |
-| **test()** | `test('Login', async ({ page }) => {});` | Crear test. |
-| **test.only()** | `test.only('Login', async () => {});` | Ejecutar solo un test. Evitar subirlo. |
-| **test.skip()** | `test.skip('Login', async () => {});` | Omitir test. |
-| **test.fixme()** | `test.fixme('Bug conocido', async () => {});` | Marcar test pendiente por bug. |
-| **test.describe()** | `test.describe('Login', () => {});` | Agrupar tests. |
-| **test.step()** | `await test.step('Login', async () => {});` | Agrupar pasos del test. |
-| **test.slow()** | `test.slow();` | Triplica timeout del test. |
-| **test.use()** | `test.use({ viewport: { width: 390, height: 844 } });` | Config específica por archivo/test. |
-
-### Tags para suites grandes
-
-```ts
-test('crear lead @smoke @critical', async ({ page }) => {
-  await page.goto('/leads');
-  // ...
-});
-```
-
-```bash
-npx playwright test --grep '@smoke'
-npx playwright test --grep-invert '@flaky'
-```
-
----
-
+<a id="auth"></a>
 ## 🔐 Auth / storageState
 
 | Concepto | Código | Uso |
@@ -873,7 +981,8 @@ setup('login', async ({ page }) => {
 
 ---
 
-## 🧱 Page Object Model rápido
+<a id="pom"></a>
+## 🧱 Page Object Model
 
 ```ts
 import { expect, type Locator, type Page } from '@playwright/test';
@@ -926,7 +1035,8 @@ test('login válido', async ({ page }) => {
 
 ---
 
-## 🧰 Fixtures custom rápido avanzado
+<a id="fixtures"></a>
+## 🧰 Fixtures custom
 
 ```ts
 // fixtures/base.ts
@@ -961,6 +1071,128 @@ test('login válido', async ({ loginPage, page }) => {
 
 ---
 
+<a id="accesibilidad"></a>
+## ♿ Accesibilidad (axe-core)
+
+Instalar: `npm i -D @axe-core/playwright`
+
+```ts
+import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+
+test('home sin violaciones de accesibilidad', async ({ page }) => {
+  await page.goto('/');
+
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+});
+```
+
+### Acotar el análisis
+
+```ts
+const results = await new AxeBuilder({ page })
+  .include('#main')                 // solo esta zona
+  .exclude('#widget-externo')       // ignorar zonas de terceros
+  .withTags(['wcag2a', 'wcag2aa'])  // solo reglas WCAG A y AA
+  .analyze();
+
+expect(results.violations).toEqual([]);
+```
+
+> Tip: para reportes más claros, imprime `results.violations.map(v => v.id)` cuando falle.
+
+---
+
+<a id="clock"></a>
+## 🕐 Mock de fecha/hora (page.clock)
+
+Sirve para testear features dependientes del tiempo (contadores, expiraciones, saludos "buenos días", timers) sin esperar en tiempo real.
+
+```ts
+// 1. Instalar el reloj con una hora inicial ANTES de navegar.
+await page.clock.install({ time: new Date('2024-02-01T10:00:00') });
+await page.goto('/');
+
+// 2. Avanzar el tiempo (dispara timers/intervals).
+await page.clock.fastForward('02:00');   // 2 minutos
+await page.clock.fastForward(30_000);    // 30 segundos
+
+// 3. Fijar una hora concreta sin avanzar timers.
+await page.clock.setFixedTime(new Date('2024-12-25T00:00:00'));
+
+// 4. Pausar en un momento y correr manualmente.
+await page.clock.pauseAt(new Date('2024-02-01T10:05:00'));
+await page.clock.runFor(1_000);          // corre 1 segundo de timers
+```
+
+| Método | Uso |
+| --- | --- |
+| `install({ time })` | Arranca el reloj simulado; llamar antes de `goto()`. |
+| `setFixedTime(date)` | Congela `Date.now()` en un valor, sin correr timers. |
+| `fastForward(ms \| '05:00')` | Salta el tiempo hacia adelante y ejecuta los timers de ese rango. |
+| `pauseAt(date)` | Pausa el reloj en un instante exacto. |
+| `runFor(ms)` | Avanza manualmente una cantidad de tiempo. |
+
+---
+
+<a id="debugging"></a>
+## 🐞 Debugging
+
+| Herramienta | Cómo | Uso |
+| --- | --- | --- |
+| **page.pause()** | `await page.pause();` | Pausa el test y abre el Inspector (en modo headed). |
+| **--debug** | `npx playwright test --debug` | Corre paso a paso con el Inspector. |
+| **PWDEBUG** | `PWDEBUG=1 npx playwright test` | Igual que `--debug` vía variable de entorno. |
+| **--ui** | `npx playwright test --ui` | Modo UI: time-travel, watch, logs por test. |
+| **Trace viewer** | `npx playwright show-trace trace.zip` | Abrir una traza (con `trace: 'on-first-retry'` en config). |
+| **--headed** | `npx playwright test --headed` | Ver el navegador mientras corre. |
+
+```ts
+test('debug puntual', async ({ page }) => {
+  await page.goto('/');
+  await page.pause();               // se detiene aquí y abre el Inspector
+  await page.getByRole('button', { name: 'Login' }).click();
+});
+```
+
+---
+
+<a id="ci"></a>
+## 🤖 CI (GitHub Actions)
+
+```yaml
+# .github/workflows/playwright.yml
+name: Playwright Tests
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npx playwright install --with-deps
+      - run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+```
+
+> En CI conviene: `retries: 2`, `workers: 2`, `forbidOnly: true` y `trace: 'on-first-retry'` (ya incluidos en el [ejemplo base](#config)).
+
+---
+
+<a id="anti-patterns"></a>
 ## 🧨 Anti-patterns
 
 | Evitar | Mejor usar |
@@ -974,18 +1206,26 @@ test('login válido', async ({ loginPage, page }) => {
 | Hardcodear URLs/credenciales | `baseURL` y variables de entorno. |
 | Hacer mock global sin limpiar contexto | Contextos aislados o rutas por test. |
 | Visual testing con datos dinámicos visibles | `mask`, `stylePath` o data estable. |
+| Comparar valores con `toBe`/`toEqual` esperando reintento | Usar assertions web-first o `expect.poll()`. |
 
 ---
 
-## 📚 Fuentes oficiales útiles
+<a id="fuentes"></a>
+## 📚 Fuentes oficiales
 
 | Tema | Link |
 | --- | --- |
 | Configuration | https://playwright.dev/docs/test-configuration |
 | Command line | https://playwright.dev/docs/test-cli |
+| Locators | https://playwright.dev/docs/locators |
+| Assertions | https://playwright.dev/docs/test-assertions |
 | API testing | https://playwright.dev/docs/api-testing |
 | Dialogs | https://playwright.dev/docs/dialogs |
+| Clock (mock time) | https://playwright.dev/docs/clock |
+| Accessibility testing | https://playwright.dev/docs/accessibility-testing |
 | Visual comparisons | https://playwright.dev/docs/test-snapshots |
 | Authentication | https://playwright.dev/docs/auth |
 | Fixtures | https://playwright.dev/docs/test-fixtures |
 | Page Object Model | https://playwright.dev/docs/pom |
+| Debugging | https://playwright.dev/docs/debug |
+| CI | https://playwright.dev/docs/ci-intro |
